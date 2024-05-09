@@ -131,85 +131,89 @@ class User < ApplicationRecord
 
   #   return matching_follow_requests
   # end
-  has_many(:accepted_sent_follow_requests, class_name: "FollowRequest", foreign_key:"sender_id", conditions(:status => "accepted"))
+  has_many(:accepted_sent_follow_requests, class_name: "FollowRequest", foreign_key:"sender_id", -> { where status: "accepted" })
 
-  def accepted_sent_follow_requests
-    my_sent_follow_requests = self.sent_follow_requests
+  # def accepted_sent_follow_requests
+  #   my_sent_follow_requests = self.sent_follow_requests
 
-    matching_follow_requests = my_sent_follow_requests.where({ :status => "accepted" })
+  #   matching_follow_requests = my_sent_follow_requests.where({ :status => "accepted" })
 
-    return matching_follow_requests
-  end
+  #   return matching_follow_requests
+  # end
 
-  def accepted_received_follow_requests
-    my_received_follow_requests = self.received_follow_requests
+  has_many(:accepted_received_follow_requests, -> { where status: "accepted" }, class_name: "FollowRequest", foreign_key: :recipient_id)
+  # def accepted_received_follow_requests
+  #   my_received_follow_requests = self.received_follow_requests
 
-    matching_follow_requests = my_received_follow_requests.where({ :status => "accepted" })
+  #   matching_follow_requests = my_received_follow_requests.where({ :status => "accepted" })
 
-    return matching_follow_requests
-  end
-
-  def followers
-    my_accepted_received_follow_requests = self.accepted_received_follow_requests
+  #   return matching_follow_requests
+  # end
+  has_many(:followers, through: :accepted_received_follow_requests, source: :sender)
+  # def followers
+  #   my_accepted_received_follow_requests = self.accepted_received_follow_requests
     
-    array_of_user_ids = Array.new
+  #   array_of_user_ids = Array.new
 
-    my_accepted_received_follow_requests.each do |a_follow_request|
-      array_of_user_ids.push(a_follow_request.sender_id)
-    end
+  #   my_accepted_received_follow_requests.each do |a_follow_request|
+  #     array_of_user_ids.push(a_follow_request.sender_id)
+  #   end
 
-    matching_users = User.where({ :id => array_of_user_ids })
+  #   matching_users = User.where({ :id => array_of_user_ids })
 
-    return matching_users
-  end
+  #   return matching_users
+  # end
+  has_many(:leaders, through: :accepted_sent_follow_requests, source: :recipient)
 
-  def leaders
-    my_accepted_sent_follow_requests = self.accepted_sent_follow_requests
+  # def leaders
+  #   my_accepted_sent_follow_requests = self.accepted_sent_follow_requests
     
-    array_of_user_ids = Array.new
+  #   array_of_user_ids = Array.new
 
-    my_accepted_sent_follow_requests.each do |a_follow_request|
-      array_of_user_ids.push(a_follow_request.recipient_id)
-    end
+  #   my_accepted_sent_follow_requests.each do |a_follow_request|
+  #     array_of_user_ids.push(a_follow_request.recipient_id)
+  #   end
 
-    matching_users = User.where({ :id => array_of_user_ids })
+  #   matching_users = User.where({ :id => array_of_user_ids })
 
-    return matching_users
-  end
+  #   return matching_users
+  # end
+  has_many(:feed, through: :leaders, source: :own_photos)
 
-  def feed
-    array_of_photo_ids = Array.new
+  # def feed
+  #   array_of_photo_ids = Array.new
 
-    my_leaders = self.leaders
+  #   my_leaders = self.leaders
     
-    my_leaders.each do |a_user|
-      leader_own_photos = a_user.own_photos
+  #   my_leaders.each do |a_user|
+  #     leader_own_photos = a_user.own_photos
 
-      leader_own_photos.each do |a_photo|
-        array_of_photo_ids.push(a_photo.id)
-      end
-    end
+  #     leader_own_photos.each do |a_photo|
+  #       array_of_photo_ids.push(a_photo.id)
+  #     end
+  #   end
 
-    matching_photos = Photo.where({ :id => array_of_photo_ids })
+  #   matching_photos = Photo.where({ :id => array_of_photo_ids })
 
-    return matching_photos
-  end
+  #   return matching_photos
+  # end
+  has_many(:discover, through: :leaders, source: :liked_photos)
 
-  def discover
-    array_of_photo_ids = Array.new
+  # def discover
+  #   array_of_photo_ids = Array.new
 
-    my_leaders = self.leaders
+  #   my_leaders = self.leaders
     
-    my_leaders.each do |a_user|
-      leader_liked_photos = a_user.liked_photos
+  #   my_leaders.each do |a_user|
+  #     leader_liked_photos = a_user.liked_photos
 
-      leader_liked_photos.each do |a_photo|
-        array_of_photo_ids.push(a_photo.id)
-      end
-    end
+  #     leader_liked_photos.each do |a_photo|
+  #       array_of_photo_ids.push(a_photo.id)
+  #     end
+  #   end
 
-    matching_photos = Photo.where({ :id => array_of_photo_ids })
+  #   matching_photos = Photo.where({ :id => array_of_photo_ids })
 
-    return matching_photos
-  end
+  #   return matching_photos
+  # end
 end
